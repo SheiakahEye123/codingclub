@@ -1,43 +1,46 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+oimg = cv2.imread("this.png")
+class cvImageProccesing:
+    def __init__(self, img):
+        self.img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    def createMap(self):
+        grayimg = self.img[:, :, 2]
+        thresh = ~cv2.adaptiveThreshold(grayimg, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 21, 2)
+        kernel = np.ones((3, 3), np.uint8)
+        gaussianimg = cv2.GaussianBlur(cv2.erode(thresh, kernel, iterations=1), (5, 5), 0, 0)
+        dilateimg = cv2.dilate(gaussianimg, kernel, iterations=1)
+        contours, hier = cv2.findContours(dilateimg, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        xs, ys, _ = self.img.shape
+        blank = np.zeros_like(self.img[:,:,2])
+        for c in range(len(contours)):
+            if cv2.contourArea(contours[c]) > (xs * ys) / 30:
+                cv2.drawContours(blank, contours, c, 255, 1)
+                bigc = c
+                break
+        plt.figure(1)
+        plt.imshow(blank)
+        plt.pause(0.01)
+        return blank
+    def findMap(self, blank):
+        xs, ys = blank.shape
+        map = [[]]
+        imgmap = cv2.resize(blank, (80,106), interpolation = cv2.INTER_AREA) * 255
 
-img = cv2.imread("this.png")
-cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 
 
-def findMapEdges(img):
-    grayimg = img[:, :, 2]
-    # gets grayscale img
-    thresh = ~cv2.adaptiveThreshold(grayimg, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 21, 2)
-    # adaptivethreshold finds "edges"
-    kernel = np.ones((3, 3), np.uint8)
-    erodeimg = cv2.erode(thresh, kernel, iterations=1)
-    gaussianimg = cv2.GaussianBlur(erodeimg, (5, 5), 0, 0)
-    dilateimg = cv2.dilate(gaussianimg, kernel, iterations=1)
-    # contours, hier = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # cv2.drawContours(gaussianimg, contours, 30, (0,0,255), 30)
-    return dilateimg
+        plt.figure(2)
+        plt.imshow(imgmap)
+        plt.pause(0.01)
 
-def findcs(img):
-    contours, hier = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    x, y = img.shape
-    for c in range(len(contours)):
-        if cv2.contourArea(contours[c]) > 40000:
-            (x, y), radius = cv2.minEnclosingCircle(contours[c])
-            center = (int(x),int(y))
-            radius = int(radius)
-            cv2.circle(img,center,radius, 255,2)
-            cv2.drawContours(img, contours, c, 255, 1)
-            bigc = c
-            break
+    def forFindMap(imgmap, map, x, y):
+        if imgmap[x][y] == 255:
+            return
+        if map[x][y] ==
 
-    plt.figure(1)
-    plt.imshow(img)
-    plt.pause(0.01)
 
-    return bigc
-
-thing = findcs(findMapEdges(img))
+imageproccesing = cvImageProccesing(oimg)
+imageproccesing.findMap(imageproccesing.createMap())
 
 plt.show()
