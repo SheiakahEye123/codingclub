@@ -80,29 +80,30 @@ imageproccesing = cvImageProccesing(oimg)
 imageproccesing.findMap(imageproccesing.createMap())
 def main():
     et = 0
+    speed = 0.5
     while True:
         st = time.time()
         screen.fill((0,0,0))
-        player.accelerate(0.5)
+        for t in imageproccesing.map:
+            for te in t:
+                te.draw()
+        player.accelerate(speed)
+        player.blockParryDodge(screen)
         if player.x <= 0:
             player.x = 0.1
-        elif player.x >= 80:
-            player.x = 79
+        elif player.x >= len(imageproccesing.map[0]):
+            player.x = len(imageproccesing.map[0]) - 1
         elif 0 < player.x < 80:
             player.x += player.velx
 
         if player.y <= 0:
             player.y = 0.1
-        elif player.y >= 106:
-            player.y = 105
+        elif player.y >= len(imageproccesing.map):
+            player.y = len(imageproccesing.map) - 1
         elif 0 < player.y < 106:
             player.y += player.vely
 
         font = pygame.font.Font('freesansbold.ttf', 32)
-
-        for t in imageproccesing.map:
-            for te in t:
-                te.draw()
 
         text = font.render(str(int(player.x)), True, (0, 255, 0), (0, 0, 255))
 
@@ -117,6 +118,8 @@ def main():
                     player.a[2] = True
                 if event.key == pygame.K_d:
                     player.a[3] = True
+                if event.key == pygame.K_f:
+                    player.a[4] = True
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     player.a[0] = False
@@ -126,6 +129,8 @@ def main():
                     player.a[2] = False
                 if event.key == pygame.K_d:
                     player.a[3] = False
+                if event.key == pygame.K_f:
+                    player.a[4] = False
 
             if event.type == pygame.QUIT:
                 pygame.quit()
