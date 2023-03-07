@@ -1,6 +1,9 @@
 import pygame
+import Util
 
 pygame.init()
+
+util = Util.Util()
 class YourPlayer():
     def __init__(self, x: int, y: int):
         self.x = x
@@ -13,6 +16,7 @@ class YourPlayer():
         self.vely = 0
         self.ETM = 0
         self.swordimg = pygame.transform.scale(pygame.image.load("sword.png"), (64, 64))
+        self.swordbox = self.swordimg.get_rect()
         self.parrydegcounter = 0
 
     def accelerate(self, speed):
@@ -40,11 +44,10 @@ class YourPlayer():
         return
 
     def blockParryDodge(self, screen):
-        swordcopy = self.swordimg.copy()
-        if self.a[4] and self.parrydegcounter <= 0:
-            self.parrydegcounter = 360
-            return
-        androtatecopy = pygame.transform.rotate(swordcopy,10)
-        self.parrydegcounter-=1
-        screen.blit(androtatecopy, (960, 540))
+        if self.parrydegcounter > 0:
+            rotate_image = pygame.transform.rotate(self.swordimg.copy(), self.parrydegcounter+1)
+            screen.blit(rotate_image, rotate_image.get_rect(center=(self.swordbox.center[0] + 960, self.swordbox.center[1] + 540)))
+        if self.a[4] and self.parrydegcounter == 0:
+            self.parrydegcounter = 72
+        screen.blit(self.swordimg,(960,540))
 
