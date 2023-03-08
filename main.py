@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import cv2
 import pygame
@@ -5,6 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 import Player
 import time
+import Opp
 
 oimg = cv2.imread("this.png")
 pygame.init()
@@ -12,18 +15,19 @@ pygame.display.init()
 screen = pygame.display.set_mode(size=(1920, 1080), vsync=240)
 sys.setrecursionlimit(5000)
 
-player = Player.YourPlayer(0,0)
+player = Player.YourPlayer()
+
 
 class tile:
     def __init__(self, filecall, discovered, x, y):
         self.filecall = filecall
-        self.tileimg = pygame.transform.scale(pygame.image.load(self.filecall), (64,64))
+        self.tileimg = pygame.transform.scale(pygame.image.load(self.filecall), (64, 64))
         self.discovered = discovered
         self.x = x
         self.y = y
 
     def draw(self):
-        screen.blit(self.tileimg, ((self.x-player.x) * 64,(self.y-player.y) * 64))
+        screen.blit(self.tileimg, ((self.x - player.x) * 64 + 960, (self.y - player.y) * 64 + 540))
         return
 
 
@@ -53,42 +57,52 @@ class cvImageProccesing:
         for i in range(xs):
             mini = []
             for e in range(ys):
-                mini.append(tile("sea.png",False, i, e))
+                mini.append(tile("sea.png", False, i, e))
             self.map.append(mini)
-        self.forFindMap(imgmap, self.map, int(len(self.map[0])/2), int(len(self.map)/2))
+        self.forFindMap(imgmap, self.map, int(len(self.map[0]) / 2), int(len(self.map) / 2))
         return
 
     def forFindMap(self, imgmap, map, x, y):
-        self.map[y][x].tileimg = pygame.transform.scale(pygame.image.load("grass.png"), (64,64))
+        self.map[y][x].tileimg = pygame.transform.scale(pygame.image.load("grass.png"), (64, 64))
         self.map[y][x].discovered = True
-        if imgmap[y-1][x] == 0:
+        if imgmap[y - 1][x] == 0:
             imgmap[y][x] = 100
-            self.forFindMap(imgmap, map, x, y-1)
-        if imgmap[y+1][x] == 0:
+            self.forFindMap(imgmap, map, x, y - 1)
+        if imgmap[y + 1][x] == 0:
             imgmap[y][x] = 100
-            self.forFindMap(imgmap, map, x, y+1)
-        if imgmap[y][x-1] == 0:
+            self.forFindMap(imgmap, map, x, y + 1)
+        if imgmap[y][x - 1] == 0:
             imgmap[y][x] = 100
-            self.forFindMap(imgmap, map, x-1, y)
-        if imgmap[y][x+1] == 0:
+            self.forFindMap(imgmap, map, x - 1, y)
+        if imgmap[y][x + 1] == 0:
             imgmap[y][x] = 100
-            self.forFindMap(imgmap, map, x+1, y)
+            self.forFindMap(imgmap, map, x + 1, y)
         return
 
 
 imageproccesing = cvImageProccesing(oimg)
 imageproccesing.findMap(imageproccesing.createMap())
+
+newopp = Opp.Opp(40, 50, player)
+
+
 def main():
+    global atcoolopp
     et = 0
     speed = 0.5
     while True:
         st = time.time()
-        screen.fill((0,0,0))
+        screen.fill((0, 0, 0))
         for t in imageproccesing.map:
             for te in t:
-                te.draw()
-        player.accelerate(speed)
-        player.blockParryDodge(screen)
+                if player.x - 20 < te.x < player.x + 20 and player.y - 20 < te.y < player.y + 20:
+                    te.draw()
+
+        temp = pygame.mouse.get_pos()
+        player.mousepos = (temp[0] - 960, temp[1] - 540)
+        player.accelerate(speed, screen)
+        newopp.player = player
+        newopp.accelerate(speed / 2)
         if player.x <= 0:
             player.x = 0.1
         elif player.x >= len(imageproccesing.map[0]):
@@ -103,12 +117,18 @@ def main():
         elif 0 < player.y < 106:
             player.y += player.vely
 
+
+        player.blockParryDodge(screen)
+
+        pygame.draw.rect(screen, (255, 0, 0), (960, 540, 10, 10))
+
+        newopp.x += newopp.velx
+        newopp.y += newopp.vely
+
         font = pygame.font.Font('freesansbold.ttf', 32)
 
-        text = font.render(str(int(player.x)), True, (0, 255, 0), (0, 0, 255))
-
-        screen.blit(text, text.get_rect())
         for event in pygame.event.get():
+            player.mousebutton = pygame.mouse.get_pressed(3)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     player.a[0] = True
@@ -120,6 +140,8 @@ def main():
                     player.a[3] = True
                 if event.key == pygame.K_f:
                     player.a[4] = True
+                if event.key == pygame.K_q:
+                    player.a[5] = True
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     player.a[0] = False
@@ -131,16 +153,32 @@ def main():
                     player.a[3] = False
                 if event.key == pygame.K_f:
                     player.a[4] = False
+                if event.key == pygame.K_q:
+                    player.a[5] = False
 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+        player.draw(screen)
+        newopp.draw(screen)
 
         pygame.display.update((0, 0), (1920, 1080))
         player.ETM = abs(st - et)
+        newopp.ETM = abs(st - et)
+
+
+        if player.atcbox.colliderect((newopp.x, newopp.y, 30, 30)):
+            pygame.draw.rect(screen, (255,0,0,100), (960,540,10,10))
+            newopp.health -= 5
+
+
+        if player.atcbox.colliderect((newopp.x, newopp.y, 30, 30)):
+            if player.blocking and newopp.y <= player.y:
+                pygame.draw.rect(screen, (255, 255, 0), (960, 540, 50, 50))
+                newopp.vely += 1
+            else:
+                player.health -= 5
         et = st
-
-
 
 
 if __name__ == "__main__":
