@@ -67,7 +67,7 @@ class YourPlayer():
         return
 
     def blockParryDodge(self, screen):
-        pygame.draw.rect(screen,(255,0,0),(960 - self.pc , 570, self.pc * 2, 10))
+        pygame.draw.rect(screen,(255,255,0),(960 - self.pc , 570, self.pc * 2, 10))
         if self.pc <= 0:
             self.stun = False
         if self.pc <= 10 and self.a[4] and not self.stun:
@@ -76,7 +76,7 @@ class YourPlayer():
             self.pc += 5 * self.ETM
             rotate_image = pygame.transform.rotate(self.swordimg.copy(), 45)
             screen.blit(rotate_image, rotate_image.get_rect(
-                center=(self.swordbox.center[0] + 960 - 32, self.swordbox.center[1] + 540 - 64)))
+                center=(self.swordbox.center[0] + 960 - 64, self.swordbox.center[1] + 540 - 64)))
             return
         if not self.stun and self.pc >= 10:
             self.pc = 10
@@ -101,7 +101,7 @@ class YourPlayer():
         if self.mousebuttons[0]:
             addd = 20
 
-        self.atcbox = rot.get_rect(center=(self.swordbox.center[0] + 960 - 32, self.swordbox.center[1] + 540 - 64 - addd))
+        self.atcbox = rot.get_rect(center=(self.swordbox.center[0] + 960 - 32, self.swordbox.center[1] + 540 - 93 - addd))
         screen.blit(rot, self.atcbox)
 
     def draw(self, screen):

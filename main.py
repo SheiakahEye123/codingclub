@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import Player
 import time
 import Opp
+import random
 
 oimg = cv2.imread("this.png")
 pygame.init()
@@ -83,7 +84,7 @@ class cvImageProccesing:
 imageproccesing = cvImageProccesing(oimg)
 imageproccesing.findMap(imageproccesing.createMap())
 
-newopp = Opp.Opp(40, 50, player)
+newopp = Opp.Opp(40, 30, player)
 
 
 def main():
@@ -162,22 +163,47 @@ def main():
         player.draw(screen)
         newopp.draw(screen)
 
+        if player.health > 0:
+            pygame.draw.rect(screen, (255,25,25), (960-player.health,500,100-player.health,10))
+
+        rect = pygame.Rect(860,540,100,100)
+
+        if rect.colliderect((((newopp.x-player.x) * 64 + 960),((newopp.y-player.y) * 64 + 540),64,64)):
+            newopp.health -= 1
+            if player.blocking:
+                if player.pc < 2:
+                    cra = pygame.mixer.Sound("stun.mp3")
+                    pygame.mixer.Sound.play(cra)
+                    pygame.mixer.music.stop()
+                    newopp.stun = 4
+            else:
+                player.health -= 5
+                player.vely -= 0.25
+
+            if player.blocking and newopp.y <= player.y:
+                pygame.draw.rect(screen, (255, 255, 0), (960, 540, 50, 50))
+                newopp.vely += -0.25
+            else:
+                player.health -= 5
+
+
+        if player.atcbox.colliderect((((newopp.x-player.x) * 64 + 960),((newopp.y-player.y) * 64 + 540),64,64)):
+            newopp.health -= player.dmg
+            newopp.velx -= 0.25
+
+            if random.randint(0,11) == 1:
+                cra = pygame.mixer.Sound("stun.mp3")
+                pygame.mixer.Sound.play(cra)
+                pygame.mixer.music.stop()
+                player.vely -= 0.5
+                player.pc = 10
+
+
+
+
         pygame.display.update((0, 0), (1920, 1080))
         player.ETM = abs(st - et)
         newopp.ETM = abs(st - et)
-
-
-        if player.atcbox.colliderect((newopp.x, newopp.y, 30, 30)):
-            pygame.draw.rect(screen, (255,0,0,100), (960,540,10,10))
-            newopp.health -= 5
-
-
-        if player.atcbox.colliderect((newopp.x, newopp.y, 30, 30)):
-            if player.blocking and newopp.y <= player.y:
-                pygame.draw.rect(screen, (255, 255, 0), (960, 540, 50, 50))
-                newopp.vely += 1
-            else:
-                player.health -= 5
         et = st
 
 

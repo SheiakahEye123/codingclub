@@ -11,6 +11,7 @@ class Opp():
         self.velx = 0
         self.vely = 0
         self.health = 100
+        self.stun = 10
 
     def accelerate(self, speed):
         accx = 0
@@ -28,8 +29,12 @@ class Opp():
             # d
             accx += 1
 
-        self.velx += accx * speed * self.ETM
-        self.vely += accy * speed * self.ETM
+
+        if self.stun <= 0:
+            self.velx += accx * speed * self.ETM
+            self.vely += accy * speed * self.ETM
+        if self.stun > 0:
+            self.stun -= 1 * self.ETM
 
         self.vely *= 0.9
         self.velx *= 0.9
